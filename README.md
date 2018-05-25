@@ -46,14 +46,18 @@ Route local requests to the `172.16.0.0/24` subnet via `pod-with-python` pod in 
 sshuttle -r '--context my-context --namespace default pod-with-python' -e /path/to/kuttle 172.16.0.0/24
 ```
 
-Use your Kubernetes pod as a VPN server:
+Use your Kubernetes pod as a VPN server with DNS requests being resolved by pod:
 
 ```sh
-sshuttle -r '--context my-context --namespace default pod-with-python' -e /path/to/kuttle 0.0.0.0/0
+sshuttle --dns -r '--context my-context --namespace default pod-with-python' -e /path/to/kuttle 0.0.0.0/0
 ```
 
 If you already have set `kubectl` defaults and placed `kuttle` in `$PATH`, just specify the pod name:
 
 ```sh
-sshuttle -r pod-with-python -e kuttle 0.0.0.0/0
+sshuttle --dns -r pod-with-python -e kuttle 0.0.0.0/0
 ```
+
+# Credits
+
+Thanks to sshuttle authors and [@databus23](https://github.com/databus23) for getting me inspired.
