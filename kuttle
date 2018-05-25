@@ -1,0 +1,7 @@
+#!/bin/sh -e
+# Kuttle wrapper by kayrus (https://github.com/kayrus/kuttle)
+KUBECTL_PARAMS="$1"
+shift 2
+SSHUTTLE_PARAMS="$@"
+set -- "${KUBECTL_PARAMS}"
+exec kubectl exec -i $@ -- sh -c "${SSHUTTLE_PARAMS}"
