@@ -23,7 +23,35 @@ Additionally you can place `kuttle` into `$PATH`
 
 # How does it work?
 
-Under the hood `sshuttle` spawns a remote python oneliner that evals `stdin` and sends a code via `stdin` that executes a server part of `sshuttle`, which *proxies* the traffic. To get a connection to the remote server `sshuttle` usually uses `ssh`. `kuttle` allows `sshuttle` to use `kubectl` without any `ssh` dependencies.
+Under the hood `sshuttle` spawns a remote python oneliner that evaluates a server code, received via `stdin`, which *proxies* the traffic. To get a connection to the remote server `sshuttle` usually uses `ssh`. `kuttle` allows `sshuttle` to use `kubectl` without any `ssh` dependencies.
+
+## Regular sshuttle process tree
+
+```sh
+$ pstree -pal `pidof -x sshuttle`
+sshuttle,1489 /usr/bin/sshuttle -r remote.example.com 10.254.0.0/16
+  ├─ssh,1492 remote.example.com -- exec /bin/sh -c 'P=python3.5; $P -V 2>/dev/null || P=python; exec "$P" -c '"'"'import sys, os; verbosity=0; sys.stdin = os.fdopen(0, "rb"); exec(compile(sys.stdin.read(978), "assembler.py", "exec"))'"'"''
+  └─sudo,1490 -p [local sudo] Password:  PYTHONPATH=/usr/lib/python3/dist-packages -- /usr/bin/python3 /usr/bin/sshuttle --method auto --firewall
+      └─python3,1491 /usr/bin/sshuttle --method auto --firewall
+```
+
+## sshuttle + kuttle process tree
+
+```sh
+$ pstree -pal `pidof -x sshuttle`
+sshuttle,1538 /usr/bin/sshuttle -r kuttle -e kuttle 10.254.0.0/16
+  ├─kubectl,1541 exec -i kuttle -- /bin/sh -c exec /bin/sh -c 'P=python3.5; $P -V 2>/dev/null || P=python; exec "$P" -c '"'"'import sys, os; verbosity=0; sys.stdin = os.fdopen(0, "rb"); exec(compile(sys.stdin.read(978), "assembler.py", "exec"))'"'"''
+  │   ├─{kubectl},1544
+  │   ├─{kubectl},1547
+  │   ├─{kubectl},1551
+  │   ├─{kubectl},1552
+  │   ├─{kubectl},1553
+  │   ├─{kubectl},1556
+  │   ├─{kubectl},1557
+  │   └─{kubectl},1558
+  └─sudo,1539 -p [local sudo] Password:  PYTHONPATH=/usr/lib/python3/dist-packages -- /usr/bin/python3 /usr/bin/sshuttle --method auto --firewall
+      └─python3,1540 /usr/bin/sshuttle --method auto --firewall
+```
 
 # Target Kubernetes pod requirements
 
@@ -40,10 +68,10 @@ sshuttle -r kuttle -e kuttle 0.0.0.0/0
 
 # Examples
 
-Route local requests to the `172.16.0.0/24` subnet via `pod-with-python` pod in your Kubernetes cluster:
+Route local requests to the `10.254.0.0/16` subnet via `pod-with-python` pod in your Kubernetes cluster:
 
 ```sh
-sshuttle -r '--context my-context --namespace default pod-with-python' -e /path/to/kuttle 172.16.0.0/24
+sshuttle -r '--context my-context --namespace default pod-with-python' -e /path/to/kuttle 10.254.0.0/16
 ```
 
 Use your Kubernetes pod as a VPN server with DNS requests being resolved by pod:
@@ -60,4 +88,4 @@ sshuttle --dns -r pod-with-python -e kuttle 0.0.0.0/0
 
 # Credits
 
-Thanks to sshuttle authors and [@databus23](https://github.com/databus23) for getting me inspired.
+Thanks to [sshuttle](https://github.com/sshuttle/sshuttle) authors and [@databus23](https://github.com/databus23) for getting me inspired.
