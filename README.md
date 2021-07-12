@@ -62,7 +62,7 @@ Prior to version 0.78.2, sshuttle used `netstat` to [list routes](https://github
 Simple alpine container with a minimal python is enough for `kuttle`. You can use the `kubectl` command below in order to spawn ready-to-use pod as a VPN server:
 
 ```sh
-kubectl run kuttle --image=alpine:latest --restart=Never -- sh -c 'apk add python --update && exec tail -f /dev/null'
+kubectl run kuttle --image=alpine:latest --restart=Never -- sh -c 'apk add python3 --update && exec tail -f /dev/null'
 sshuttle -r kuttle -e kuttle 0.0.0.0/0
 ```
 
