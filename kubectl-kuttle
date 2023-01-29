@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# start the sshuttle tunnel
+if [[ $1 == "start" ]]; then
+mkdir -p ~/.cache
+kubectl run kuttle --image=alpine:latest --restart=Never -- sh -c 'apk add python3 --update && exec tail -f /dev/null'
+sshuttle --remote kuttle --dns --daemon --pidfile ~/.cache/kuttle.pid --auto-hosts --ssh-cmd kuttle 0.0.0.0/0
+exit 0
+fi
+
+# stop the sshuttle tunnel
+if [[ $1 == "stop" ]]; then
+kill `cat ~/.cache/kuttle.pid`;
+kubectl delete pod/kuttle --force
+exit 0
+fi
+
+# help docs
+echo "kubectl kuttle [start/stop]"
+exit 1
